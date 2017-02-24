@@ -22,8 +22,8 @@ public class ProduceService {
 			.map(i -> String.format("%03d", i))
 			.forEach(s -> {
 				try {
-					log.debug("produce: " + s);
 					queue.put(s);
+					log.debug("produce: " + s);
 				} catch (InterruptedException e) {
 					throw new IllegalStateException(e);
 				}

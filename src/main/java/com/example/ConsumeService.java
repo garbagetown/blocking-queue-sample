@@ -1,6 +1,7 @@
 package com.example;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -18,12 +19,22 @@ public class ConsumeService {
 	private final BlockingQueue<String> queue;
 	private final QueueProperties props;
 	
+	@SuppressWarnings("rawtypes")
 	public void execute() {
-		ExecutorService service = Executors.newFixedThreadPool(props.getNumOfThreads());
+		
+		int numOfThreads = props.getNumOfThreads();
+		
+		ExecutorService executorService = Executors.newFixedThreadPool(numOfThreads);
+		
+		CompletableFuture[] futures = new CompletableFuture[numOfThreads];
+		for (int i = 0, n = futures.length; i < n; i++) {
+			futures[i] = CompletableFuture.runAsync(new Task(), executorService);
+		}
+		
 		try {
-			service.execute(new Task());
+			CompletableFuture.allOf(futures).join();
 		} finally {
-			service.shutdown();
+			executorService.shutdown();
 		}
 	}
 	
